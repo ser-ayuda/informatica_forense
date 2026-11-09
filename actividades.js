@@ -12,5 +12,12 @@ const ACTIVIDADES = [
     url: "test-original/index.html",
     textoBoton: "Abrir test original",
     etiqueta: "Repaso general"
-  }
+  },
+ {
+   titulo: "Mas Test",
+   descripcion: "Mas Test informatica forense",
+   url: "masTest/index.html",
+   textoBoton: "Abrir Mas Test",
+   etiqueta: "Si Mas Test"
+ }
 ];
