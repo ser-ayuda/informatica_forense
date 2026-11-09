@@ -1,1 +1,918 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulador y Repaso Interactivo · IFCD083PO Informática Forense y Ciberseguridad</title>
+  <style>
+    :root {
+      --primary: #1e3a8a;
+      --primary-dark: #0f172a;
+      --accent: #2563eb;
+      --accent-light: #eff6ff;
+      --success: #059669;
+      --success-bg: #ecfdf5;
+      --success-border: #a7f3d0;
+      --danger: #dc2626;
+      --danger-bg: #fef2f2;
+      --danger-border: #fecaca;
+      --amber: #d97706;
+      --amber-bg: #fffbeb;
+      --amber-border: #fde68a;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+    }
 
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); line-height: 1.5; padding-bottom: 60px; }
+
+    header {
+      background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+      color: white;
+      padding: 32px 20px 24px 20px;
+      text-align: center;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.16);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    header h1 { font-size: 1.7rem; margin-bottom: 8px; font-weight: 800; letter-spacing: -0.5px; }
+    header p { color: #bfdbfe; font-size: 0.95rem; max-width: 760px; margin: 0 auto; line-height: 1.4; }
+
+    .container { max-width: 880px; margin: 20px auto; padding: 0 16px; }
+
+    /* Barra de Progreso y Estadísticas */
+    .score-bar {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .score-stats { display: flex; flex-wrap: wrap; gap: 24px; font-size: 0.88rem; align-items: center; }
+    .stat-item { display: flex; flex-direction: column; }
+    .stat-label { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
+    .score-val { font-weight: 800; color: var(--primary); font-size: 1.2rem; }
+    .btn-reset {
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-reset:hover { background: #e2e8f0; }
+
+    /* Barra de Filtro de Unidades */
+    .filter-wrapper { margin-bottom: 20px; }
+    .filter-title { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; padding-left: 2px; }
+    .filter-bar {
+      display: flex;
+      overflow-x: auto;
+      gap: 8px;
+      padding-bottom: 8px;
+      scrollbar-width: thin;
+    }
+    .filter-btn {
+      white-space: nowrap;
+      background: white;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .filter-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .filter-btn.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+    }
+
+    /* Tarjeta de Pregunta */
+    .q-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 22px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+      transition: border-color 0.2s;
+    }
+    .q-card:hover { border-color: #cbd5e1; }
+    .q-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+    .unit-tag {
+      color: var(--accent);
+      background: var(--accent-light);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      letter-spacing: 0.3px;
+    }
+    .q-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 16px;
+      line-height: 1.45;
+    }
+
+    /* Opciones */
+    .opt-grid { display: flex; flex-direction: column; gap: 9px; }
+    .opt-btn {
+      display: flex;
+      align-items: flex-start;
+      text-align: left;
+      background: #f8fafc;
+      border: 1.5px solid var(--border);
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.15s ease-in-out;
+      width: 100%;
+    }
+    .opt-btn:hover:not(:disabled) {
+      background: #f1f5f9;
+      border-color: var(--accent);
+    }
+    .opt-letter {
+      font-weight: 800;
+      color: var(--accent);
+      margin-right: 12px;
+      background: white;
+      border: 1px solid var(--border);
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.78rem;
+      flex-shrink: 0;
+    }
+
+    /* Estados Correcto / Incorrecto */
+    .opt-btn.correct {
+      background: var(--success-bg) !important;
+      border-color: var(--success) !important;
+      color: #065f46 !important;
+      font-weight: 600;
+    }
+    .opt-btn.correct .opt-letter {
+      background: var(--success);
+      color: white;
+      border-color: var(--success);
+    }
+    .opt-btn.incorrect {
+      background: var(--danger-bg) !important;
+      border-color: var(--danger) !important;
+      color: #991b1b !important;
+    }
+    .opt-btn.incorrect .opt-letter {
+      background: var(--danger);
+      color: white;
+      border-color: var(--danger);
+    }
+
+    /* Ayuda y Explicación */
+    .help-section {
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px dashed var(--border);
+    }
+    .btn-hint {
+      background: none;
+      border: none;
+      color: var(--amber);
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 3px 6px;
+      border-radius: 4px;
+      transition: background 0.15s;
+    }
+    .btn-hint:hover { background: #fef3c7; }
+    .hint-box {
+      margin-top: 10px;
+      background: var(--amber-bg);
+      border-left: 3px solid var(--amber);
+      border-right: 1px solid var(--amber-border);
+      border-top: 1px solid var(--amber-border);
+      border-bottom: 1px solid var(--amber-border);
+      padding: 12px 14px;
+      border-radius: 0 8px 8px 0;
+      font-size: 0.86rem;
+      color: #92400e;
+      display: none;
+      line-height: 1.4;
+    }
+    .exp-box {
+      margin-top: 14px;
+      padding: 14px 16px;
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-left: 4px solid var(--primary);
+      border-radius: 0 8px 8px 0;
+      font-size: 0.87rem;
+      color: #334155;
+      display: none;
+      line-height: 1.5;
+    }
+    .exp-box strong { color: var(--primary-dark); display: block; margin-bottom: 4px; }
+
+    footer {
+      text-align: center;
+      margin-top: 40px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      padding: 0 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="badge">Especialidad Formativa Oficial · IFCD083PO</div>
+    <h1>Simulador de Autoevaluación: Informática Forense y Ciberseguridad</h1>
+    <p>36 casos prácticos y cuestiones técnicas fundamentadas en el Código Penal, la Ley de Enjuiciamiento Civil, estándares de laboratorio y metodologías periciales.</p>
+  </header>
+
+  <div class="container">
+
+    <div class="score-bar">
+      <div class="score-stats">
+        <div class="stat-item">
+          <span class="stat-label">Preguntas respondidas</span>
+          <span class="score-val" id="answered">0 / 36</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Aciertos</span>
+          <span class="score-val" style="color: var(--success);" id="score">0</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Efectividad</span>
+          <span class="score-val" id="percent">0%</span>
+        </div>
+      </div>
+      <button class="btn-reset" onclick="resetAll()">Reiniciar Cuestionario</button>
+    </div>
+
+    <div class="filter-wrapper">
+      <div class="filter-title">Filtrar por Contenido Formativo:</div>
+      <div class="filter-bar">
+        <button class="filter-btn active" onclick="applyFilter('all', this)">Todas las Unidades (36)</button>
+        <button class="filter-btn" onclick="applyFilter('UD1', this)">UD1. Cibercrimen</button>
+        <button class="filter-btn" onclick="applyFilter('UD2', this)">UD2. Metodología</button>
+        <button class="filter-btn" onclick="applyFilter('UD3', this)">UD3. Laboratorio</button>
+        <button class="filter-btn" onclick="applyFilter('UD4', this)">UD4. Cadena Custodia</button>
+        <button class="filter-btn" onclick="applyFilter('UD5', this)">UD5. Sistemas</button>
+        <button class="filter-btn" onclick="applyFilter('UD6', this)">UD6. Redes/Internet</button>
+        <button class="filter-btn" onclick="applyFilter('UD7', this)">UD7. Móviles</button>
+        <button class="filter-btn" onclick="applyFilter('UD8', this)">UD8. Preservación</button>
+        <button class="filter-btn" onclick="applyFilter('UD9', this)">UD9. Responsabilidad/Juicio</button>
+      </div>
+    </div>
+
+    <div id="quiz-container"></div>
+
+    <footer>
+      <p>Material pedagógico de preparación y autoevaluación para la especialidad formativa IFCD083PO (60 horas lectivas).</p>
+      <p style="margin-top: 4px;">Diseñado como recurso estático autónomo para despliegue abierto en GitHub Pages.</p>
+    </footer>
+
+  </div>
+
+  <script>
+    const questions = [
+      // ─────────────────────────────────────────────────────────────
+      // UNIDAD 1: Cibercrimen y delitos informáticos (4 preguntas)
+      // ─────────────────────────────────────────────────────────────
+      {
+        id: 1, unit: "UD1", unitName: "Cibercrimen y delitos informáticos",
+        q: "¿Constituye delito según el Art. 197 ter del Código Penal español la mera adquisición, tenencia o difusión de programas de software concebidos para cometer ciberataques?",
+        hint: "El legislador español anticipa la barrera de protección penal castigando los actos preparatorios y la tenencia de herramientas de hacking sin autorización.",
+        opts: [
+          "No, la legislación penal solo sanciona el daño material o económico efectivamente consumado sobre la víctima.",
+          "Sí, castiga a quien sin autorización produzca, adquiera para su uso, importe o facilite programas o equipos concebidos o adaptados principalmente para vulnerar la seguridad.",
+          "Únicamente si se acredita formalmente la pertenencia a una organización delictiva o grupo terrorista.",
+          "Solo si el software ha sido adquirido en mercados clandestinos utilizando criptomonedas."
+        ],
+        c: 1,
+        exp: "El Art. 197 ter CP penaliza de forma autónoma los actos preparatorios y la facilitación o tenencia injustificada de malware, exploits o herramientas concebidas para vulnerar sistemas, sin requerir la consumación del ataque principal."
+      },
+      {
+        id: 2, unit: "UD1", unitName: "Cibercrimen y delitos informáticos",
+        q: "¿Cuál es la tipificación penal principal aplicable a un ataque de Ransomware en el que se cifran los datos de una infraestructura empresarial y se exige un rescate monetario?",
+        hint: "Afecta gravemente a la disponibilidad de los activos digitales mediante su bloqueo, concurriendo con la exigencia económica forzada.",
+        opts: [
+          "Delito de estafa informática simple (Art. 248.1 CP).",
+          "Delito de daños informáticos (Art. 264 y 264 bis CP) en concurso con extorsión o amenazas condicionales.",
+          "Falsedad documental informática exclusiva (Art. 390 CP).",
+          "Infracción administrativa leve ante la Agencia de Protección de Datos."
+        ],
+        c: 1,
+        exp: "El cifrado no autorizado destruye la disponibilidad y el acceso a los datos (daños informáticos graves según los Arts. 264 y 264 bis CP). La solicitud de pago para facilitar la clave constituye una extorsión o amenaza condicional."
+      },
+      {
+        id: 3, unit: "UD1", unitName: "Cibercrimen y delitos informáticos",
+        q: "En una operativa de phishing bancario donde se induce a la víctima mediante ingeniería social a introducir sus credenciales para desviar fondos, ¿qué tipo penal se aplica?",
+        hint: "El tipo penal castiga a los que con ánimo de lucro valiéndose de manipulación informática o artificio semejante consiguen una transferencia no consentida.",
+        opts: [
+          "Delito de hurto con fuerza en las cosas (Art. 237 CP).",
+          "Delito de estafa informática (Art. 248.2 CP).",
+          "Delito de usurpación de estado civil exclusivamente (Art. 401 CP).",
+          "Delito contra la propiedad intelectual (Art. 270 CP)."
+        ],
+        c: 1,
+        exp: "El Art. 248.2 CP tipifica expresamente como estafadores informáticos a quienes, con ánimo de lucro y valiéndose de alguna manipulación informática o artificio semejante, cometan transferencias no consentidas de activos patrimoniales."
+      },
+      {
+        id: 4, unit: "UD1", unitName: "Cibercrimen y delitos informáticos",
+        q: "Si un empleado antes de dimitir descarga de forma no autorizada la base de datos de clientes y secretos industriales de su empresa para llevársela a un competidor, ¿qué delito contempla el Código Penal?",
+        hint: "Se protege la propiedad corporativa y la confidencialidad de la información reservada de la persona jurídica.",
+        opts: [
+          "Apropiación indebida simple (Art. 253 CP).",
+          "Descubrimiento y revelación de secretos de empresa (Arts. 278 y 279 CP).",
+          "Infracción exclusivamente laboral sin trascendencia penal.",
+          "Delito de estafa procesal (Art. 250.1.7 CP)."
+        ],
+        c: 1,
+        exp: "Los Arts. 278 y 279 CP sancionan con penas de prisión a quien, para descubrir un secreto de empresa, se apodere por cualquier medio de datos o documentos confidenciales, agravándose si el sujeto tenía obligación legal o contractual de guardar reserva."
+      },
+
+      // ─────────────────────────────────────────────────────────────
+      // UNIDAD 2: Investigación y análisis forense en sistemas informáticos (4 preguntas)
+      // ─────────────────────────────────────────────────────────────
+      {
+        id: 5, unit: "UD2", unitName: "Investigación y análisis forense en sistemas informáticos",
+        q: "¿Cómo se formula y qué trascendencia tiene el Principio de Intercambio de Edmond Locard aplicado a la informática forense?",
+        hint: "El contacto entre dos entidades produce siempre una transferencia bidireccional recíproca.",
+        opts: [
+          "Establece que todo sistema infectado por malware debe ser formateado antes de 24 horas.",
+          "Postula que todo contacto entre el atacante y el entorno genera una transferencia mutua: el intruso deja huellas digitales en el sistema y se lleva elementos del mismo.",
+          "Determina que los registros de eventos no pueden superar los 100 megabytes de capacidad.",
+          "Obliga a que el perito informático intercambie sus notas manuscritas con el letrado defensor."
+        ],
+        c: 1,
+        exp: "El principio de Locard sostiene que todo intruso deja indicios físicos o lógicos (registros, MACB, sockets) en el entorno que asalta y, a su vez, adquiere trazas del sistema atacado, sirviendo de base científica para la reconstrucción pericial."
+      },
+      {
+        id: 6, unit: "UD2", unitName: "Investigación y análisis forense en sistemas informáticos",
+        q: "En el análisis de líneas temporales (Timeline Analysis), ¿por qué es imperativo normalizar todas las marcas temporales MACB a UTC (Tiempo Universal Coordinado)?",
+        hint: "Los atacantes, los servidores de salto y las víctimas operan en husos horarios diferentes y con variaciones estacionales de horario.",
+        opts: [
+          "Para comprimir el tamaño final del archivo del informe pericial.",
+          "Porque neutraliza las discrepancias de husos horarios y cambios estacionales de hora, permitiendo ordenar con certeza matemática eventos ocurridos en sistemas distribuidos.",
+          "Porque las aplicaciones forenses no reconocen caracteres correspondientes a husos europeos.",
+          "Porque la norma UNE 197010 exige el uso exclusivo de la hora local de la sede territorial."
+        ],
+        c: 1,
+        exp: "En investigaciones distribuidas, correlacionar logs de servidores remotos con terminales de usuario exige unificar todo a UTC. De no hacerse, un log registrado a las 14:00 GMT parecería erróneamente posterior a un evento ocurrido a las 14:30 CET."
+      },
+      {
+        id: 7, unit: "UD2", unitName: "Investigación y análisis forense en sistemas informáticos",
+        q: "¿Cuáles son las 4 fases fundamentales del ciclo pericial establecidas en la guía metodológica NIST SP 800-86?",
+        hint: "La secuencia sigue el orden lógico de capturar, procesar la materia prima, interpretar y documentar.",
+        opts: [
+          "Denuncia, Instrucción judicial, Vista oral y Ejecución de sentencia.",
+          "Recogida (Collection), Examen (Examination), Análisis (Analysis) y Presentación (Reporting).",
+          "Escaneo perimetral, Explotación, Escalada y Persistencia.",
+          "Aislamiento de red, Reseteo de credenciales, Parcheo y Restauración de servicio."
+        ],
+        c: 1,
+        exp: "NIST SP 800-86 define el procedimiento en 4 etapas: Recogida (identificación y clonación de indicios), Examen (procesamiento con software validado), Análisis (interpretación de resultados) y Presentación (emisión formal del dictamen pericial)."
+      },
+      {
+        id: 8, unit: "UD2", unitName: "Investigación y análisis forense en sistemas informáticos",
+        q: "En el Digital Forensic Process (DFP) de 7 fases formulado en la doctrina forense, ¿en qué consiste la 'Estrategia de Aproximación' (Fase 3)?",
+        hint: "Se sitúa antes de la adquisición y determina las decisiones críticas sobre el orden de actuación.",
+        opts: [
+          "En interrogar a los sospechosos en sede policial antes de llegar al juzgado.",
+          "En planificar el impacto técnico de la intervención, decidiendo si se realiza triaje en vivo, captura de RAM previa o apagado inmediato para no destruir evidencias volátiles.",
+          "En solicitar un anticipo de honorarios económicos antes de revisar el equipo.",
+          "En desarmar físicamente todos los componentes electrónicos de la placa base."
+        ],
+        c: 1,
+        exp: "La estrategia de aproximación evalúa el estado del sistema (encendido/apagado, cifrado activo) para determinar si se realiza una intervención en caliente (RFC 3227) o en frío, maximizando la preservación de los indicios más vulnerables."
+      },
+
+      // ─────────────────────────────────────────────────────────────
+      // UNIDAD 3: Laboratorio y herramientas Forenses. (4 preguntas)
+      // ─────────────────────────────────────────────────────────────
+      {
+        id: 9, unit: "UD3", unitName: "Laboratorio y herramientas Forenses.",
+        q: "¿Por qué en un laboratorio forense se consideran superiores los bloqueadores de escritura por Hardware (Forensic Bridges) frente a las directivas por Software?",
+        hint: "El hardware intercepta físicamente la señal eléctrica y lógica a nivel de controladora antes de que alcance el medio de almacenamiento.",
+        opts: [
+          "Porque los puentes hardware aceleran la clonación hasta triplicar el ancho de banda del disco.",
+          "Porque interceptan físicamente las órdenes SCSI/ATA de modificación a nivel de bus, impidiendo que comandos de montaje o fallos del sistema anfitrión alteren el soporte original.",
+          "Porque las directivas por software están prohibidas por la Ley de Enjuiciamiento Civil.",
+          "Porque los dispositivos hardware permiten clonar discos sin necesidad de cables de datos."
+        ],
+        c: 1,
+        exp: "Los bloqueadores software dependen del kernel del sistema operativo forense, el cual podría enviar órdenes de escritura involuntarias (actualización de marcas temporales o montajes automáticos). El puente hardware aísla físicamente la línea de escritura."
+      },
+      {
+        id: 10, unit: "UD3", unitName: "Laboratorio y herramientas Forenses.",
+        q: "¿Cuál es el propósito del programa CFTT (Computer Forensic Tool Testing) promovido por el NIST en relación al software pericial?",
+        hint: "Garantiza a los tribunales que las herramientas han sido evaluadas bajo criterios científicos objetivos.",
+        opts: [
+          "Verificar que el software forense sea de código abierto y gratuito.",
+          "Someter las aplicaciones forenses a bancos de prueba estandarizados para certificar que realizan adquisiciones exactas bit a bit sin alterar los soportes originales.",
+          "Otorgar licencias de habilitación profesional para ejercer como perito en España.",
+          "Comprobar que las herramientas forenses funcionen únicamente sobre sistemas operativos Linux."
+        ],
+        c: 1,
+        exp: "El programa CFTT del NIST audita la fiabilidad del software forense (FTK Imager, Autopsy, dd, etc.) para que el perito pueda justificar ante el juzgador que la herramienta empleada no introduce artefactos ni deforma la prueba analizada."
+      },
+      {
+        id: 11, unit: "UD3", unitName: "Laboratorio y herramientas Forenses.",
+        q: "¿Qué requerimientos de seguridad física y lógica debe cumplir un laboratorio de informática forense conforme a estándares como ISO/IEC 17025?",
+        hint: "Debe garantizarse la preservación de las evidencias contra accesos no autorizados, fuego o interferencias electromagnéticas.",
+        opts: [
+          "Estar ubicado en un edificio público de la administración de justicia obligatoriamente.",
+          "Disponer de control biométrico o con tarjeta de accesos, custodia en armarios ignífugos, redes air-gapped aisladas de Internet y registros de trazabilidad ambiental.",
+          "Contar con una conexión troncal de fibra óptica de 10 Gbps a Internet de forma permanente.",
+          "Disponer de un servidor web público para compartir las evidencias con la contraparte."
+        ],
+        c: 1,
+        exp: "Un laboratorio forense requiere aislamiento riguroso: entorno desconectado de redes externas (*air-gapped*), control de accesos restringido, cajas de seguridad o armarios ignífugos para las evidencias máster y condiciones ambientales estables."
+      },
+      {
+        id: 12, unit: "UD3", unitName: "Laboratorio y herramientas Forenses.",
+        q: "En el examen pericial de discos rígidos en laboratorio, ¿qué representan las áreas HPA (Host Protected Area) y DCO (Device Configuration Overlay)?",
+        hint: "Son sectores reservados que no son visibles para el sistema operativo habitual pero que pueden albergar datos ocultos.",
+        opts: [
+          "Son particiones de recuperación creadas exclusivamente por los sistemas operativos macOS.",
+          "Son zonas ocultas reservadas del disco a las que la BIOS estándar y el SO no acceden, pero que deben ser identificadas y clonadas porque un atacante puede esconder datos allí.",
+          "Son sectores dañados físicamente por corrosión que deben descartarse del análisis.",
+          "Son áreas exclusivas donde se almacenan las firmas digitales de los controladores de Windows."
+        ],
+        c: 1,
+        exp: "HPA y DCO son configuraciones de bajo nivel de los discos ATA/SATA que reducen artificialmente los sectores visibles. Las herramientas de laboratorio deben desbloquearlas para verificar que no contengan particiones o archivos deliberadamente ocultos."
+      },
+
+      // ─────────────────────────────────────────────────────────────
+      // UNIDAD 4: La cadena de custodia (4 preguntas)
+      // ─────────────────────────────────────────────────────────────
+      {
+        id: 13, unit: "UD4", unitName: "La cadena de custodia",
+        q: "¿Por qué en la práctica forense moderna se exige sustituir algoritmos como MD5 o SHA-1 por SHA-256 en la fijación de la huella digital?",
+        hint: "La comunidad científica ha demostrado ataques prácticos de colisión donde dos archivos distintos producen el mismo digesto.",
+        opts: [
+          "Porque SHA-256 es el único algoritmo compatible con sistemas de archivos ext4 y NTFS.",
+          "Porque en MD5 y SHA-1 se han demostrado colisiones matemáticas viables, mientras que SHA-256 garantiza una inmutabilidad matemática robusta sin colisiones conocidas.",
+          "Porque la Ley de Enjuiciamiento Civil declara nula cualquier pericia que utilice hashes de menos de 512 bits.",
+          "Porque SHA-256 cifra los datos impidiendo que terceras personas lean el contenido."
+        ],
+        c: 1,
+        exp: "Las colisiones generadas en MD5 y SHA-1 (demostradas en proyectos como SHAttered) permitirían a la contraparte sembrar dudas sobre la integridad. SHA-256 ofrece 256 bits de digesto y una resistencia criptográfica plena para sede judicial."
+      },
+      {
+        id: 14, unit: "UD4", unitName: "La cadena de custodia",
+        q: "Si un archivo dubitado presenta exactamente el mismo hash SHA-256 que su copia de respaldo, ¿qué acredita jurídicamente este hecho?",
+        hint: "El hash demuestra coincidencia matemática exacta entre dos flujos de bits, pero no la veracidad intrínseca ni la autoría personal.",
+        opts: [
+          "Acredita que el contenido del documento es veraz y que el investigado es el autor material de los hechos.",
+          "Acredita exclusivamente que el archivo es íntegro e idéntico bit a bit a la copia obtenida en origen, sin certificar por sí solo quién lo creó o si su texto es veraz.",
+          "Acredita que el documento fue firmado digitalmente mediante certificado de la FNMT.",
+          "Acredita la imposibilidad legal de que la contraparte impugne la prueba pericial."
+        ],
+        c: 1,
+        exp: "El hash verifica la inmutabilidad física/lógica (integridad). No convalida si lo redactado es verdadero o falso, ni prueba quién estaba físicamente sentado ante el teclado en el momento de su redacción inicial."
+      },
+      {
+        id: 15, unit: "UD4", unitName: "La cadena de custodia",
+        q: "Según la doctrina criminalística (Darahuge & Arellano González), ¿cuál es la consecuencia procesal de una ruptura injustificada en la cadena de custodia?",
+        hint: "Vulnera el derecho a un proceso con todas las garantías al no poder comprobarse la inalterabilidad de la prueba.",
+        opts: [
+          "Una amonestación verbal al perito por parte del juez instructor.",
+          "La nulidad probatoria y expulsión del indicio por vulneración de las garantías procesales y generación de indefensión (Art. 24 de la Constitución Española).",
+          "La obligación de solicitar a la empresa fabricante del disco un duplicado del contenido.",
+          "Una sanción tributaria impuesta por la Agencia Tributaria."
+        ],
+        c: 1,
+        exp: "Si se quiebra la trazabilidad documental o no se puede probar que el objeto analizado es exactamente el mismo que se halló en la escena, la prueba decae por falta de autenticidad y vulneración de las garantías de contradicción y defensa (Art. 24 CE)."
+      },
+      {
+        id: 16, unit: "UD4", unitName: "La cadena de custodia",
+        q: "En una diligencia de aseguramiento de evidencias en la escena, ¿qué valor aporta la intervención de un Notario o Letrado de la Administración de Justicia (LAJ)?",
+        hint: "Proporcionan presunción de veracidad respecto a las circunstancias de tiempo, lugar y aseguramiento del objeto.",
+        opts: [
+          "Valida que los algoritmos criptográficos utilizados pertenezcan a la Unión Europea.",
+          "Dota de fe pública a la recolección, levantando acta formal de los elementos hallados, su estado, el embalaje, el precintado y la fijación de los hashes iniciales.",
+          "Asume la dirección técnica del volcado forense sustituyendo al perito informático.",
+          "Exime al perito de comparecer en el juicio oral para ratificar su informe."
+        ],
+        c: 1,
+        exp: "La fe pública judicial (LAJ) o extrajudicial (Notario) blinda la procedencia y estado inicial del indicio, haciendo indiscutible ante el tribunal que ese soporte concreto con ese hash se encontraba en ese lugar y fecha específicos."
+      },
+
+      // ─────────────────────────────────────────────────────────────
+      // UNIDAD 5: Análisis forense en sistemas (4 preguntas)
+      // ─────────────────────────────────────────────────────────────
+      {
+        id: 17, unit: "UD5", unitName: "Análisis forense en sistemas",
+        q: "En Microsoft Windows, ¿qué información aporta la clave UserAssist localizada en la colmena NTUSER.DAT del Registro de usuario?",
+        hint: "Almacena aplicaciones ejecutadas en el entorno gráfico codificadas mediante una sencilla sustitución alfabética.",
+        opts: [
+          "Las contraseñas de inicio de sesión de Windows en texto claro.",
+          "El listado de aplicaciones y programas ejecutados por ese usuario específico codificados en ROT13, incluyendo contador de inicios y fecha/hora de la última ejecución.",
+          "El historial completo de sitios web visitados en modo incógnito.",
+          "Las claves de descifrado del sistema de archivos EFS."
+        ],
+        c: 1,
+        exp: "UserAssist registra la interacción del usuario con ejecutables y accesos directos. Los nombres se almacenan cifrados con ROT13 junto a un contador de ejecuciones y marcas temporales de la última vez que fueron lanzados."
+      },
+      {
+        id: 18, unit: "UD5", unitName: "Análisis forense en sistemas",
+        q: "¿Qué artefactos del sistema operativo Windows permiten constatar la inserción de una memoria USB concreta, su fabricante y su número de serie?",
+        hint: "Combina una subclave de enumeración de hardware en el Registro con un archivo log del subsistema de instalación en C:\Windows\INF.",
+        opts: [
+          "El archivo desktop.ini y la papelera de reciclaje ($Recycle.Bin).",
+          "La clave SYSTEM\CurrentControlSet\Enum\USBSTOR y el archivo de log setupapi.dev.log.",
+          "El archivo de hibernación hiberfil.sys exclusivamente.",
+          "El archivo boot.ini del directorio raíz."
+        ],
+        c: 1,
+        exp: "USBSTOR identifica el dispositivo mediante identificador de proveedor (VID), producto (PID) y número de serie único. El log setupapi.dev.log documenta con fecha y hora exactas la primera vinculación del dispositivo en el equipo."
+      },
+      {
+        id: 19, unit: "UD5", unitName: "Análisis forense en sistemas",
+        q: "Al analizar el directorio Prefetch (C:\Windows\Prefetch\*.pf), ¿qué evidencia de ejecución obtiene el analista forense?",
+        hint: "El Administrador de Memoria de Windows genera estos archivos para acelerar el arranque de las aplicaciones.",
+        opts: [
+          "El código fuente desensamblado del ejecutable en lenguaje ensamblador.",
+          "La acreditación de que un binario fue ejecutado en el sistema, su ruta de lanzamiento, la cantidad de ejecuciones y los archivos y DLLs cargados durante los primeros 10 segundos.",
+          "El texto completo de las contraseñas introducidas por el usuario en dicho programa.",
+          "La dirección MAC de la tarjeta de red que descargó el software."
+        ],
+        c: 1,
+        exp: "Los ficheros Prefetch constituyen una prueba irrefutable de ejecución de un programa en Windows, registrando el nombre del ejecutable, hash de ruta, número de veces ejecutado y marcas temporales de las últimas 8 ejecuciones (en Windows 10/11)."
+      },
+      {
+        id: 20, unit: "UD5", unitName: "Análisis forense en sistemas",
+        q: "En el registro de eventos de seguridad de Windows (Security.evtx), ¿qué representan respectivamente los Event IDs 4624 y 4625?",
+        hint: "Son los códigos de auditoría de autenticación de cuentas locales y de dominio.",
+        opts: [
+          "Instalación de un controlador de dispositivo y eliminación de un archivo del sistema.",
+          "Inicio de sesión exitoso (Logon exitoso) e inicio de sesión fallido (Logon fallido).",
+          "Arranque del cortafuegos y detención del servicio antivirus.",
+          "Conexión a una red Wi-Fi pública e inicio del navegador web."
+        ],
+        c: 1,
+        exp: "El evento 4624 indica un inicio de sesión completado satisfactoriamente (detallando el Logon Type: tipo 2 interactivo, tipo 3 red, tipo 10 RDP, etc.). El evento 4625 documenta un intento frustrado con usuario o contraseña erróneos."
+      },
+
+      // ─────────────────────────────────────────────────────────────
+      // UNIDAD 6: Análisis forense de redes e Internet (4 preguntas)
+      // ─────────────────────────────────────────────────────────────
+      {
+        id: 21, unit: "UD6", unitName: "Análisis forense de redes e Internet",
+        q: "Al capturar y examinar tráfico de red en formato PCAP con Wireshark, ¿qué técnica pericial permite reconstruir el contenido de una sesión TCP completa?",
+        hint: "Permite ensamblar los segmentos de datos dispersos en una corriente bidireccional legible.",
+        opts: [
+          "La inyección de paquetes ARP falsificados.",
+          "El reensamblado de flujos TCP (Follow TCP Stream) para visualizar la conversación bidireccional ordenada entre cliente y servidor.",
+          "El escaneo SYN pasivo sin acuse de recibo.",
+          "El desbordamiento de búfer del adaptador Ethernet."
+        ],
+        c: 1,
+        exp: "La función 'Follow TCP Stream' de Wireshark analiza los números de secuencia y acuse de recibo (ACK) para reconstruir cronológicamente el intercambio de datos a nivel de aplicación (HTTP, SMTP, FTP, etc.) entre los dos extremos."
+      },
+      {
+        id: 22, unit: "UD6", unitName: "Análisis forense de redes e Internet",
+        q: "¿Cómo funciona un sistema de mitigación perimetral basado en DNS Sinkhole (como AdGuard Home o Pi-hole)?",
+        hint: "Interviene en la fase de resolución de nombres antes de que se inicie el transporte de paquetes a nivel de socket.",
+        opts: [
+          "Formatea automáticamente el disco del servidor atacante mediante un exploit de red.",
+          "Intercepta las peticiones DNS a dominios de malware o centros de mando (C2) y devuelve una IP nula (0.0.0.0), bloqueando la conexión e inscribiendo el evento en el log de auditoría.",
+          "Descifra las conexiones HTTPS bancarias alterando los certificados de la autoridad raíz.",
+          "Fuerza un reinicio físico del router para cambiar la IP pública del operador."
+        ],
+        c: 1,
+        exp: "Un DNS Sinkhole actúa como servidor DNS defensivo. Al consultar un dominio malicioso, neutraliza la resolución entregando 0.0.0.0 o localhost. Esto aborta la conexión TCP/UDP y deja registro pericial en el Query Log sobre qué equipo interno intentó contactarlo."
+      },
+      {
+        id: 23, unit: "UD6", unitName: "Análisis forense de redes e Internet",
+        q: "En el análisis pericial de un correo electrónico fraudulento (phishing), ¿por qué el campo visible 'From:' de la cabecera no acredita por sí solo el origen del mensaje?",
+        hint: "El protocolo de correo original carece de mecanismos de autenticación nativos para el remitente visible al usuario.",
+        opts: [
+          "Porque los correos electrónicos se cifran automáticamente con claves públicas al enviarse.",
+          "Porque el campo visible 'From:' es fácilmente falseable (email spoofing); es preceptivo examinar las cabeceras Received: from, la IP del servidor emisor y los registros SPF, DKIM y DMARC.",
+          "Porque las cabeceras Received: from son eliminadas por los clientes de correo tras 24 horas.",
+          "Porque los tribunales solo aceptan correos impresos en papel timbrado."
+        ],
+        c: 1,
+        exp: "En el estándar RFC 5322, el campo 'From:' puede rellenarse arbitrariamente. El perito debe auditar la traza cronológica de servidores en las cabeceras 'Received:', verificar si la IP emisora está autorizada en el registro SPF del dominio y cotejar la firma DKIM."
+      },
+      {
+        id: 24, unit: "UD6", unitName: "Análisis forense de redes e Internet",
+        q: "Al investigar el rastro de navegación web de un usuario en Google Chrome, ¿en qué formato y estructura se almacena el historial, descargas y cookies?",
+        hint: "Es un motor de base de datos embebida ampliamente utilizado en aplicaciones multiplataforma.",
+        opts: [
+          "En documentos de texto plano delimitados por tabuladores en formato CSV.",
+          "En bases de datos relacionales SQLite estructuradas en tablas (archivos History, Cookies y Web Data dentro del perfil de usuario).",
+          "En documentos XML comprimidos con contraseña de usuario.",
+          "En archivos de imagen de disco en formato ISO."
+        ],
+        c: 1,
+        exp: "Los navegadores basados en Chromium emplean bases de datos SQLite 3 para registrar URLs visitadas, fechas en microsegundos WebKit, términos de búsqueda introducidos, transacciones de cookies y descargas de ficheros."
+      },
+
+      // ─────────────────────────────────────────────────────────────
+      // UNIDAD 7: Análisis forense de dispositivos móviles (4 preguntas)
+      // ─────────────────────────────────────────────────────────────
+      {
+        id: 25, unit: "UD7", unitName: "Análisis forense de dispositivos móviles",
+        q: "¿Cuál es la primera medida inmediata que debe adoptarse al incautar un teléfono inteligente encendido en la escena?",
+        hint: "Los terminales conectados a redes celulares o inalámbricas pueden recibir instrucciones automáticas de destrucción de datos.",
+        opts: [
+          "Apagar el terminal de inmediato manteniendo pulsado el botón de encendido.",
+          "Aislarlo electromagnéticamente en una bolsa de Faraday y activar el Modo Avión para impedir el borrado remoto (remote wipe) a través de Internet.",
+          "Conectarlo al ordenador del perito para transferir las fotografías a una carpeta compartida.",
+          "Retirar la batería forzando la apertura de la carcasa trasera con una palanca."
+        ],
+        c: 1,
+        exp: "Los smartphones modernos pueden ser borrados en segundos de forma remota mediante servicios como 'Find My' o comandos MDM corporativos. La bolsa de Faraday y el modo avión bloquean las radiofrecuencias celulares, Wi-Fi y Bluetooth preservando los indicios."
+      },
+      {
+        id: 26, unit: "UD7", unitName: "Análisis forense de dispositivos móviles",
+        q: "¿Qué diferencias fundamentales existen entre una extracción móvil Lógica, de Sistema de Archivos y Física?",
+        hint: "Avanzan desde el nivel de API de usuario hasta la lectura física directa de las celdas de la memoria flash NAND.",
+        opts: [
+          "La extracción lógica se realiza en iOS, la de archivos en Android y la física en teléfonos antiguos.",
+          "La Lógica copia datos visibles vía API/backup; la de Sistema de Archivos accede a la estructura interna con permisos avanzados (ADB/Root); y la Física realiza un volcado bit a bit de la memoria flash NAND.",
+          "La extracción física solo recupera archivos que hayan sido impresos previamente.",
+          "No existe diferencia técnica, son términos comerciales sin validez científica."
+        ],
+        c: 1,
+        exp: "La extracción lógica recupera lo que la API del fabricante exporta (contactos, llamadas). La de sistema de archivos vuelca las carpetas del SO. La extracción física lee los bloques de memoria NAND en bruto (mediante Chip-Off, EDL o JTAG), incluyendo zonas no asignadas."
+      },
+      {
+        id: 27, unit: "UD7", unitName: "Análisis forense de dispositivos móviles",
+        q: "Al examinar bases de datos SQLite de mensajería (como WhatsApp o Telegram), ¿por qué es crítico analizar el archivo complementario '-wal' (Write-Ahead Log)?",
+        hint: "Las modificaciones y borrados recientes se graban en este archivo antes de sincronizarse con la base de datos principal.",
+        opts: [
+          "Porque almacena el PIN de desbloqueo de la pantalla del terminal.",
+          "Porque contiene transacciones recientes y registros eliminados que aún no se han volcado al archivo .db principal, permitiendo recuperar mensajes borrados.",
+          "Porque es un archivo temporal corrupto que debe borrarse para que SQLite pueda abrirse.",
+          "Porque almacena exclusivamente las pistas de audio de las llamadas telefónicas."
+        ],
+        c: 1,
+        exp: "En SQLite con registro previo (WAL), las inserciones y bajas se procesan en el fichero `-wal`. Si este archivo se desestima o se elimina, se perderán las operaciones más recientes y la posibilidad de rescatar conversaciones en páginas libres (*freelists*)."
+      },
+      {
+        id: 28, unit: "UD7", unitName: "Análisis forense de dispositivos móviles",
+        q: "¿Por qué en dispositivos móviles modernos con cifrado por hardware (File-Based Encryption) una extracción física bit a bit puede resultar inútil sin las claves de descifrado?",
+        hint: "El cifrado moderno vincula los datos a coprocesadores de seguridad (TEE / Secure Enclave) y claves criptográficas dinámicas.",
+        opts: [
+          "Porque los chips de memoria flash se desmagnetizan si se extraen de la placa.",
+          "Porque los datos en la memoria flash están cifrados a nivel de hardware, por lo que el volcado en bruto de bits será ilegible sin las claves generadas por el procesador de seguridad.",
+          "Porque los terminales Android bloquean la lectura de voltajes cuando la batería desciende del 50%.",
+          "Porque la norma ISO 27037 prohíbe el uso de volcados físicos en terminales con más de 4 GB de RAM."
+        ],
+        c: 1,
+        exp: "En terminales modernos (Android con FBE y Apple iOS), cada archivo está cifrado con una clave única vinculada al Secure Enclave / TEE y al PIN del usuario. Un volcado físico en bruto arroja entropía cifrada ilegible si no se desbloquea el dispositivo por software."
+      },
+
+      // ─────────────────────────────────────────────────────────────
+      // UNIDAD 8: Preservación de la evidencia electrónica (4 preguntas)
+      // ─────────────────────────────────────────────────────────────
+      {
+        id: 29, unit: "UD8", unitName: "Preservación de la evidencia electrónica",
+        q: "Conforme a la norma RFC 3227 sobre el orden de volatilidad, ¿cuál es la jerarquía correcta de preservación de evidencias?",
+        hint: "La prioridad se rige por la velocidad a la que los datos desaparecen o se sobrescriben tras perder la alimentación.",
+        opts: [
+          "Discos duros magnéticos > Memorias flash USB > Memoria RAM > Cintas de copia de seguridad.",
+          "Registros de CPU y caché > Memoria volátil (RAM) > Estado de conexiones de red y procesos > Discos de almacenamiento > Medios de respaldo remotos.",
+          "Copias impresas en papel > Servidores DNS > Archivos temporales > Papelera de reciclaje.",
+          "Dispositivos móviles > Servidores web > Enrutadores de acceso > Discos ópticos DVD."
+        ],
+        c: 1,
+        exp: "La RFC 3227 exige recolectar los datos desde el soporte más efímero al más persistente: Registros de procesador \(>\) Memoria RAM \(>\) Tablas de red y procesos activos \(>\) Almacenamiento local magnético/SSD \(>\) Copias de seguridad en soportes externos."
+      },
+      {
+        id: 30, unit: "UD8", unitName: "Preservación de la evidencia electrónica",
+        q: "¿Qué información crítica y no persistente puede obtenerse mediante el análisis de la memoria RAM con herramientas como Volatility 3?",
+        hint: "Elementos activos en tiempo de ejecución que se destruyen por completo al apagar el equipo.",
+        opts: [
+          "La fecha de compra y factura comercial del equipo informático.",
+          "Conexiones de red activas, sockets, procesos ocultos inyectados por malware, contraseñas en memoria y claves de descifrado de volúmenes protegidos (como BitLocker).",
+          "El número de serie impreso en el chasis metálico de la fuente de alimentación.",
+          "El registro histórico de fallos de corriente eléctrica ocurridos en los últimos cinco años."
+        ],
+        c: 1,
+        exp: "La memoria RAM contiene la 'fotografía viva' del sistema: procesos maliciosos residentes, hilos inyectados (`malfind`), sockets abiertos (`netscan`), sesiones de usuario activas y claves de descifrado que no existen en el disco duro."
+      },
+      {
+        id: 31, unit: "UD8", unitName: "Preservación de la evidencia electrónica",
+        q: "¿Qué ventajas estructurales y de seguridad procesal ofrece una imagen forense en formato E01 (Expert Witness) frente a una imagen en formato Raw/DD?",
+        hint: "El archivo E01 no es un volcado plano; incorpora metadatos de auditoría y mecanismos de comprobación interna.",
+        opts: [
+          "Que el formato E01 puede ejecutarse directamente como si fuera un videojuego.",
+          "Que almacena metadatos del caso (perito, descripción, fecha), compresión de datos y sumas de verificación hash calculadas cada 64 sectores (32 KB), detectando corrupciones localizadas.",
+          "Que el formato E01 impide que los abogados defensores soliciten copias de la prueba.",
+          "Que no requiere espacio físico de almacenamiento en el disco del laboratorio."
+        ],
+        c: 1,
+        exp: "Un archivo Raw (.dd) es un flujo de bytes sin cabecera. E01 encapsula metadatos procesales del caso, permite compresión sin pérdida y verifica la integridad por bloques internos, alertando si un fragmento concreto del archivo se corrompe."
+      },
+      {
+        id: 32, unit: "UD8", unitName: "Preservación de la evidencia electrónica",
+        q: "Al utilizar utilidades de clonación forense como dcfldd o dc3dd en entornos Linux, ¿qué ventaja operativa aportan frente al comando 'dd' tradicional?",
+        hint: "Permiten calcular sumas de verificación criptográfica de forma simultánea a la lectura de los sectores.",
+        opts: [
+          "Permiten piratear la contraseña de inicio de sesión de cualquier usuario de Windows.",
+          "Calculan el hash criptográfico (como SHA-256) en tiempo real mientras clonan, ofrecen barra de progreso y pueden escribir simultáneamente a múltiples destinos de copia.",
+          "Convierten automáticamente los archivos eliminados a formato PDF editable.",
+          "Desfragmentan el disco duro de la víctima para acelerar la copia."
+        ],
+        c: 1,
+        exp: "A diferencia de `dd` estándar, `dcfldd` y `dc3dd` están optimizados para informática forense: computan el hash criptográfico al vuelo durante la lectura del soporte máster, informan del progreso y verifican la imagen resultante sin lecturas adicionales."
+      },
+
+      // ─────────────────────────────────────────────────────────────
+      // UNIDAD 9: Responsabilidad civil y penal en el ámbito informático. (4 preguntas)
+      // ─────────────────────────────────────────────────────────────
+      {
+        id: 33, unit: "UD9", unitName: "Responsabilidad civil y penal en el ámbito informático.",
+        q: "En el procedimiento judicial español (Art. 335.2 de la LEC), ¿qué juramento o promesa solemne debe formular obligatoriamente el perito en su dictamen?",
+        hint: "El perito tiene el deber legal de actuar con la máxima neutralidad considerando tanto lo perjudicial como lo favorable a las partes.",
+        opts: [
+          "Prometer que sus conclusiones respaldarán en todo caso la postura procesal de quien financie sus honorarios.",
+          "Manifestar bajo juramento o promesa decir verdad y actuar con la mayor objetividad posible, tomando en consideración lo que pueda favorecer como lo que sea susceptible de causar perjuicio a cualquiera de las partes.",
+          "Garantizar que ninguna de las herramientas utilizadas ha sido desarrollada fuera de España.",
+          "Declarar que los honorarios devengados se donarán a instituciones públicas benéficas."
+        ],
+        c: 1,
+        exp: "El Art. 335.2 LEC exige la fórmula obligatoria de juramento o promesa de objetividad estricta. El perito no es un abogado de parte; es un auxiliar técnico del tribunal que debe valorar todos los indicios con independencia de a quién beneficien."
+      },
+      {
+        id: 34, unit: "UD9", unitName: "Responsabilidad civil y penal en el ámbito informático.",
+        q: "¿Qué sanciones estipula el Código Penal español (Arts. 458 a 460) para el perito judicial que declare con dolo o falsedad manifiesta en un procedimiento judicial?",
+        hint: "Se trata de un delito contra la Administración de Justicia sancionado con privación de libertad e inhabilitación profesional.",
+        opts: [
+          "Una amonestación verbal en el acta del juicio y el pago de las costas de la comparecencia.",
+          "Delito de falso testimonio pericial castigado con penas de prisión, multa pecuniaria e inhabilitación especial para empleo, cargo público, profesión u oficio.",
+          "La suspensión temporal del carnet de conducir de vehículos a motor.",
+          "La obligación de cursar nuevamente la titulación académica universitaria."
+        ],
+        c: 1,
+        exp: "Faltar a la verdad maliciosamente, alterar datos o silenciar hechos relevantes en un dictamen pericial constituye delito de falso testimonio pericial (Arts. 458 a 460 CP), castigado severamente con penas de prisión e inhabilitación profesional."
+      },
+      {
+        id: 35, unit: "UD9", unitName: "Responsabilidad civil y penal en el ámbito informático.",
+        q: "En el marco de la norma UNE 197010:2015 sobre elaboración de informes periciales y el modelo colegial de visado profesional, ¿qué garantía aporta el visado ante el tribunal?",
+        hint: "No juzga la oportunidad de fondo de la pericia, pero certifica la identidad, habilitación y la inalterabilidad registral del informe.",
+        opts: [
+          "Garantiza que el juez deba dictar sentencia favorable a quien aporte el informe visado de forma vinculante.",
+          "Acredita formalmente la identidad y colegiación del perito, la sujeción a normas técnicas y la custodia de una copia corporativa idéntica con código de verificación para evitar manipulaciones posteriores.",
+          "Exime al perito de ser interrogado por el letrado de la parte contraria en la vista oral.",
+          "Convalida el informe aunque no se haya respetado la cadena de custodia de las evidencias."
+        ],
+        c: 1,
+        exp: "El visado profesional expedido por colegios o asociaciones periciales certifica la habilitación oficial del técnico, asigna un número de registro y código de verificación inalterable, y custodia una copia idéntica que impide alteraciones documentales sobrevenidas."
+      },
+      {
+        id: 36, unit: "UD9", unitName: "Responsabilidad civil y penal en el ámbito informático.",
+        q: "¿Cuál es la frontera deontológica infranqueable que el perito informático debe observar estrictamente durante la ratificación y el contraexamen en juicio oral?",
+        hint: "La pericia técnica aporta la verdad demostrativa de los hechos en los sistemas; la tipificación y la culpabilidad personal pertenecen a la potestad judicial.",
+        opts: [
+          "Declarar de forma taxativa la culpabilidad o inocencia del acusado para resolver la controversia del litigio.",
+          "Limitarse estrictamente a acreditar hechos técnicos verificados (ej. 'la acción se originó desde la sesión del usuario X en la IP Y'), sin calificar jurídicamente los delitos ni imputar la autoría a la persona física.",
+          "Negarse a responder a las preguntas que formule el letrado de la defensa.",
+          "Abandonar la sala si la contraparte formula preguntas relativas a la metodología empleada."
+        ],
+        c: 1,
+        exp: "La función jurisdiccional de juzgar, calificar penalmente (estafa, daños) e imputar la autoría a una persona física corresponde en exclusiva al Tribunal. El perito informático prueba los hechos técnicos acontecidos en los sistemas, sin usurpar la función judicial."
+      }
+    ];
+
+    let userAnswers = {};
+
+    function render(filter = 'all') {
+      const container = document.getElementById('quiz-container');
+      container.innerHTML = '';
+
+      const filtered = filter === 'all' ? questions : questions.filter(q => q.unit === filter);
+      const letters = ['A', 'B', 'C', 'D'];
+
+      filtered.forEach((q, idx) => {
+        const card = document.createElement('div');
+        card.className = 'q-card';
+
+        const isAnswered = userAnswers[q.id] !== undefined;
+        const selected = userAnswers[q.id];
+
+        let optsHtml = '';
+        q.opts.forEach((optText, optIdx) => {
+          let cls = 'opt-btn';
+          if (isAnswered) {
+            if (optIdx === q.c) cls += ' correct';
+            else if (optIdx === selected) cls += ' incorrect';
+          }
+          optsHtml += `
+            <button class="${cls}" onclick="pickAnswer(${q.id}, ${optIdx})" ${isAnswered ? 'disabled' : ''}>
+              <span class="opt-letter">${letters[optIdx]}</span>
+              <span>${optText}</span>
+            </button>
+          `;
+        });
+
+        card.innerHTML = `
+          <div class="q-header">
+            <span class="unit-tag">${q.unit} · ${q.unitName}</span>
+            <span style="color: var(--text-muted); font-size: 0.75rem;">Pregunta ${idx + 1} de ${filtered.length}</span>
+          </div>
+          <div class="q-title">${q.q}</div>
+          <div class="opt-grid">${optsHtml}</div>
+          <div class="help-section">
+            <button class="btn-hint" onclick="toggleHint(${q.id})">💡 Ver Pista / Ayuda Técnica</button>
+            <div class="hint-box" id="hint-${q.id}">${q.hint}</div>
+            <div class="exp-box" id="exp-${q.id}" style="${isAnswered ? 'display: block;' : 'display: none;'}">
+              <strong>Justificación Procesal / Técnica:</strong>
+              ${q.exp}
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function pickAnswer(id, optIdx) {
+      if (userAnswers[id] !== undefined) return;
+      userAnswers[id] = optIdx;
+      updateStats();
+      const activeBtn = document.querySelector('.filter-btn.active');
+      const activeFilter = activeBtn.getAttribute('onclick').match(/'([^']+)'/)[1];
+      render(activeFilter);
+    }
+
+    function toggleHint(id) {
+      const box = document.getElementById(`hint-${id}`);
+      box.style.display = box.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function updateStats() {
+      const count = Object.keys(userAnswers).length;
+      let ok = 0;
+      questions.forEach(q => { if (userAnswers[q.id] === q.c) ok++; });
+      document.getElementById('answered').innerText = `${count} / ${questions.length}`;
+      document.getElementById('score').innerText = ok;
+      document.getElementById('percent').innerText = count === 0 ? '0%' : Math.round((ok / count) * 100) + '%';
+    }
+
+    function applyFilter(unit, btn) {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      render(unit);
+    }
+
+    function resetAll() {
+      if (confirm("¿Estás seguro de que deseas reiniciar todas las respuestas?")) {
+        userAnswers = {};
+        updateStats();
+        const activeBtn = document.querySelector('.filter-btn.active');
+        const activeFilter = activeBtn.getAttribute('onclick').match(/'([^']+)'/)[1];
+        render(activeFilter);
+      }
+    }
+
+    render('all');
+  </script>
+</body>
+</html>
