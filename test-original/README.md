@@ -1,0 +1,1 @@
+# test-original\n\nMaterial de práctica y repaso de IFCD083PO.\n\n- No es un examen oficial ni una certificación.\n- Las respuestas son visibles en el código fuente.\n- No solicita datos personales ni envía resultados.\n- Abrir `index.html` desde la carpeta descomprimida.\n- En GitHub Pages, mantener esta carpeta y enlazarla desde el portal.\n
