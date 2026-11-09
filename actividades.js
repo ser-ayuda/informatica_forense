@@ -1,0 +1,16 @@
+const ACTIVIDADES = [
+  {
+    titulo: "Repaso general: 30 preguntas",
+    descripcion: "Test de práctica con pistas, explicaciones, selección por unidad, modo simulacro y revisión de errores.",
+    url: "test-repaso/index.html",
+    textoBoton: "Abrir test de repaso",
+    etiqueta: "Repaso general"
+  },
+  {
+    titulo: "Test original: 30 preguntas",
+    descripcion: "Primera versión del test web de práctica. Conservada como alternativa de estudio.",
+    url: "test-original/index.html",
+    textoBoton: "Abrir test original",
+    etiqueta: "Repaso general"
+  }
+];

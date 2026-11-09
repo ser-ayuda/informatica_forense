@@ -1,44 +1,87 @@
-# Test IFCD083PO
-Web de repaso original: 30 preguntas (tres por cada una de las nueve unidades y tres generales).
+# Portal IFCD083PO
 
-## Uso local
-Descomprime TODO el ZIP y abre index.html. No abras el HTML dentro del ZIP.
-No necesita instalación, npm, servidor, Internet ni cuenta de alumno. Las preguntas se cargan por script local, no por fetch.
+Página inicial para agrupar actividades de repaso de Informática forense y ciberseguridad (IFCD083PO).
+
+## Aviso de uso
+
+Este portal es material docente de práctica y repaso. No es un examen oficial, una certificación ni una prueba de identidad.
+
+- No solicita datos personales.
+- No envía resultados a un servidor.
+- No guarda datos en `localStorage`.
+- No utiliza analítica, cookies propias ni peticiones externas.
+- Las actividades enlazadas pueden mostrar sus respuestas en el código fuente.
+- Cada actividad debe revisarse antes de publicarla.
+
+## Estructura recomendada
+
+```text
+portal-ifcd083po/
+├── index.html
+├── styles.css
+├── portal.js
+├── actividades.js
+├── README.md
+├── .nojekyll
+├── test-repaso/
+│   ├── index.html
+│   ├── styles.css
+│   ├── app.js
+│   ├── preguntas.js
+│   └── README.md
+└── test-original/
+    ├── index.html
+    ├── styles.css
+    ├── app.js
+    ├── preguntas.js
+    └── README.md
+```
+
+## Cómo añadir una actividad
+
+Abre `actividades.js` y añade un objeto nuevo antes del corchete final `];`:
+
+```javascript
+,
+{
+  titulo: "Nombre de la actividad",
+  descripcion: "Explica brevemente qué hará el alumno.",
+  url: "nombre-carpeta/index.html",
+  textoBoton: "Abrir actividad",
+  etiqueta: "Unidad o tema"
+}
+```
+
+La página inicial mostrará automáticamente la nueva tarjeta. No es necesario modificar `index.html` ni `portal.js`.
 
 ## Publicación en GitHub Pages
-1. Crea un repositorio (público para el camino sencillo con GitHub Free).
-2. Sube los archivos de ESTA carpeta a la raíz, no el ZIP sin descomprimir.
-3. Comprueba que index.html queda directamente en la raíz.
-4. Settings > Pages > Build and deployment > Source: Deploy from a branch.
-5. Selecciona main (o tu rama real), /(root), Save.
-6. Espera el despliegue y abre la URL que muestra Pages.
-7. Comprueba la URL en móvil y en otro navegador antes de compartirla.
-Si faltan permisos o Pages no aparece, revisar permisos del repositorio y políticas de la organización. La disponibilidad depende del plan y de la visibilidad.
 
-Documentación: https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site
-https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site
+1. Crea un repositorio público, por ejemplo `ifcd083po-portal`.
+2. Sube los archivos y carpetas de esta versión descomprimida a la raíz del repositorio.
+3. No subas el ZIP sin descomprimir.
+4. Comprueba que `index.html` está directamente en la raíz.
+5. Entra en **Settings > Pages**.
+6. En **Build and deployment**, selecciona **Deploy from a branch**.
+7. Selecciona `main` y `/ (root)`.
+8. Pulsa **Save**.
+9. Espera el despliegue y abre la URL generada.
 
-## Funciones
-Selección por unidad; orden aleatorio; modo práctica con pistas; simulacro con corrección final; puntuación orientativa; revisión completa; repaso de errores; descarga JSON del resultado.
-Las pistas NO descuentan puntos, se contabilizan. Sin cronómetro ni presión temporal.
+La URL tendrá normalmente este aspecto:
 
-## Privacidad y límites
-Sin analítica, cookies, localStorage, registro ni peticiones externas desde la aplicación. GitHub como proveedor de alojamiento puede procesar datos de acceso según sus políticas. Cerrar o recargar borra la sesión. El JSON solo se descarga al solicitarlo y no se envía al docente.
-Las preguntas y respuestas son públicas en el código. No usar como evaluación segura, certificación oficial, acreditación de identidad ni prueba de nota no manipulable. El resultado descargado puede editarse.
-Contenido educativo general: revisar preguntas y adecuación al grupo antes de publicar. No es banco oficial ITS INF-105 ni asesoramiento jurídico.
+```text
+https://tuusuario.github.io/ifcd083po-portal/
+```
 
-## Editar el banco
-preguntas.js contiene UNITS y QUESTIONS. Cada pregunta usa id único, unit (0 general, 1–9), question, options (cuatro textos), correct (índice 0–3), hint, explanation.
-Añade una coma entre objetos. Mantén opciones inequívocas y evita datos personales. Prueba el modo práctica y simulacro tras editar.
+## Comprobaciones antes de publicar
 
-## Comprobación manual antes de clase
-- Abrir index.html fuera del ZIP.
-- Completar una unidad en ambos modos.
-- Confirmar respuesta sin selección: debe pedir elegir.
-- Ver una pista y comprobar el contador al final.
-- Fallar una pregunta y usar Repasar errores.
-- Descargar y abrir resultado-repaso.json.
-- Navegar por Tab, Espacio y Enter; probar móvil.
-- Repetir desde la URL de Pages y comprobar rutas de scripts.
+- Abrir `index.html` fuera del ZIP.
+- Comprobar que las dos actividades se abren desde el portal.
+- Probar el portal en móvil y en otro navegador.
+- Comprobar que no se han subido PDFs, imágenes, capturas, informes ni documentos internos.
+- Revisar que no haya nombres, correos, IPs, contraseñas, rutas internas ni datos personales.
+- Confirmar que los enlaces funcionan tras subir los archivos.
+- No incluir materiales internos en el mismo repositorio público.
 
-No se ha ejecutado una prueba automatizada en navegador en esta entrega; sí se valida la estructura del banco al generar el paquete.
+## Límites
+
+Este portal no controla identidad, no registra notas ni garantiza la disponibilidad de las actividades enlazadas. Cada test es material de práctica; sus respuestas son visibles en el código y su resultado descargable puede modificarse.
