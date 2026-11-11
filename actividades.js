@@ -20,11 +20,11 @@ const ACTIVIDADES = [
    textoBoton: "Abrir Mas Test",
    etiqueta: "Si Mas Test"
  },
-  {
-  titulo: "Catálogo de herramientas Tsurugi",
-  descripcion: "Funciones, ejemplos y precauciones de uso.",
-  url: "catalogo-tsurugi/index.html",
-  textoBoton: "Abrir catálogo",
-  etiqueta: "Recursos"
+ {
+   titulo: "Catálogo de herramientas Tsurugi",
+   descripcion: "Funciones, ejemplos y precauciones de uso.",
+   url: "catalogo-tsurugi/index.html",
+   textoBoton: "Abrir catálogo",
+   etiqueta: "Recursos"
  }
 ];
