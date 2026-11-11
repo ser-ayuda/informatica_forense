@@ -19,7 +19,7 @@ const ACTIVIDADES = [
    url: "masTest/index.html",
    textoBoton: "Abrir Mas Test",
    etiqueta: "Si Mas Test"
- }
+ },
   {
   titulo: "Catálogo de herramientas Tsurugi",
   descripcion: "Funciones, ejemplos y precauciones de uso.",
